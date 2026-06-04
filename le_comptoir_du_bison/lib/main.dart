@@ -1,11 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:screenshot/screenshot.dart';
+import 'package:share_plus/share_plus.dart';
+import 'dart:io';
+import 'package:path_provider/path_provider.dart';
 import 'providers/beer_provider.dart';
 import 'theme/app_theme.dart';
 import 'widgets/beer_button.dart';
 import 'widgets/cumulative_chart.dart';
 import 'widgets/hourly_chart.dart';
 import 'widgets/mug_widget.dart';
+import 'widgets/share_summary_widget.dart';
 
 void main() {
   runApp(
@@ -24,14 +29,16 @@ class BisonApp extends StatelessWidget {
     return MaterialApp(
       title: 'Le Comptoir du Bison',
       theme: AppTheme.theme,
-      home: const HomeScreen(),
+      home: HomeScreen(),
       debugShowCheckedModeBanner: false,
     );
   }
 }
 
 class HomeScreen extends StatelessWidget {
-  const HomeScreen({super.key});
+  HomeScreen({super.key});
+
+  final ScreenshotController screenshotController = ScreenshotController();
 
   @override
   Widget build(BuildContext context) {
@@ -105,6 +112,29 @@ class HomeScreen extends StatelessWidget {
                 const SizedBox(height: 16),
                 _buildChartCard('Courbe d\'ébriété cumulative', CumulativeChart(beers: provider.todayBeers)),
                 
+                const SizedBox(height: 24),
+                
+                // SHARE BUTTON
+                Center(
+                  child: ElevatedButton.icon(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppTheme.amber,
+                      foregroundColor: AppTheme.brownDark,
+                      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                      shape: const RoundedRectangleBorder(
+                        borderRadius: BorderRadius.zero,
+                        side: BorderSide(color: AppTheme.brownMid, width: 2),
+                      ),
+                    ),
+                    onPressed: () => _shareScore(provider),
+                    icon: const Icon(Icons.share),
+                    label: const Text(
+                      'PARTAGER MON SCORE',
+                      style: TextStyle(fontFamily: 'Special Elite', fontWeight: FontWeight.bold),
+                    ),
+                  ),
+                ),
+
                 const SizedBox(height: 40),
                 _buildFooter(),
               ],
@@ -113,6 +143,27 @@ class HomeScreen extends StatelessWidget {
         },
       ),
     );
+  }
+
+  Future<void> _shareScore(BeerProvider provider) async {
+    final image = await screenshotController.captureFromWidget(
+      Material(
+        child: ShareSummaryWidget(
+          beers: provider.todayBeers,
+          totalVolume: provider.totalVolume,
+          sessionCount: provider.sessionCount,
+          peakHour: provider.peakHour,
+          avgGlassSize: provider.avgGlassSize,
+        ),
+      ),
+      pixelRatio: 2.0,
+    );
+
+    final directory = await getTemporaryDirectory();
+    final imagePath = await File('${directory.path}/bison_score.png').create();
+    await imagePath.writeAsBytes(image);
+
+    await Share.shareXFiles([XFile(imagePath.path)], text: 'Mon score d\'hydratation houblonnée au Comptoir du Bison ! 🍻');
   }
 
   Widget _buildMasthead(BeerProvider provider) {
