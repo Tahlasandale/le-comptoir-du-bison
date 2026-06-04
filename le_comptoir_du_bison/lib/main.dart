@@ -115,22 +115,29 @@ class HomeScreen extends StatelessWidget {
                 const SizedBox(height: 24),
                 
                 // SHARE BUTTON
-                Center(
-                  child: ElevatedButton.icon(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppTheme.amber,
-                      foregroundColor: AppTheme.brownDark,
-                      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                      shape: const RoundedRectangleBorder(
-                        borderRadius: BorderRadius.zero,
-                        side: BorderSide(color: AppTheme.brownMid, width: 2),
-                      ),
+                const SizedBox(height: 12),
+                GestureDetector(
+                  onTap: () => _shareScore(provider),
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: AppTheme.amber,
+                      border: Border.all(color: AppTheme.brownMid, width: 3),
                     ),
-                    onPressed: () => _shareScore(provider),
-                    icon: const Icon(Icons.share),
-                    label: const Text(
-                      'PARTAGER MON SCORE',
-                      style: TextStyle(fontFamily: 'Special Elite', fontWeight: FontWeight.bold),
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Icon(Icons.share, color: AppTheme.brownDark),
+                        const SizedBox(width: 12),
+                        Text(
+                          'PARTAGER MON SCORE',
+                          style: AppTheme.theme.textTheme.labelSmall?.copyWith(
+                            color: AppTheme.brownDark,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 14,
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                 ),
