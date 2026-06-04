@@ -1,19 +1,15 @@
-<!DOCTYPE html><html lang="fr"><head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Le Comptoir du Bison</title>
-<link rel="icon" type="image/png" sizes="32x32" href="/favicon.png">
-<link rel="manifest" href="/manifest.json">
-<meta name="theme-color" content="#f6d32d">
-</head><body>
 <!DOCTYPE html>
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Le Comptoir du Bison — Hydratation Houblonnée</title>
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon.png">
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#f6d32d">
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=Special+Elite&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
 <style>
   :root {
     --cream: #f5edd8;
@@ -338,6 +334,33 @@
 
   .chart-wrap { position: relative; height: 200px; }
 
+  /* ── SHARE BUTTON ── */
+  .share-container {
+    text-align: center;
+    margin: 2rem 0;
+  }
+  .share-btn {
+    background: var(--amber);
+    color: var(--brown-dark);
+    font-family: 'Special Elite', cursive;
+    font-size: 14px;
+    font-weight: bold;
+    letter-spacing: 0.1em;
+    padding: 1rem 2rem;
+    border: 3px solid var(--brown-mid);
+    cursor: pointer;
+    transition: all 0.2s;
+    text-transform: uppercase;
+  }
+  .share-btn:hover {
+    background: var(--amber-light);
+    transform: translateY(-3px);
+    box-shadow: 0 6px 12px rgba(0,0,0,0.3);
+  }
+  .share-btn:active {
+    transform: translateY(0);
+  }
+
   /* ── ORNAMENT LINE ── */
   .ornament {
     text-align: center;
@@ -380,7 +403,7 @@
 </head>
 <body>
 
-<div class="page-wrapper">
+<div class="page-wrapper" id="capture-area">
 
   <!-- MASTHEAD -->
   <header class="masthead">
@@ -499,6 +522,10 @@
         <canvas id="cumulativeLineChart"></canvas>
       </div>
     </div>
+  </div>
+
+  <div class="share-container">
+    <button class="share-btn" onclick="shareScore()">Partager mon score</button>
   </div>
 
   <footer>
@@ -677,14 +704,52 @@ function updateUI() {
   });
 }
 
+async function shareScore() {
+  const area = document.getElementById('capture-area');
+  const canvas = await html2canvas(area, {
+    backgroundColor: '#2d1a08',
+    scale: 2,
+    logging: false,
+    useCORS: true
+  });
+  
+  canvas.toBlob(async (blob) => {
+    const file = new File([blob], 'bison-score.png', { type: 'image/png' });
+    
+    if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
+      try {
+        await navigator.share({
+          files: [file],
+          title: 'Mon score d\'hydratation houblonnée !',
+          text: 'Regarde ma session au Comptoir du Bison ! 🍻'
+        });
+      } catch (err) {
+        if (err.name !== 'AbortError') {
+          console.error('Erreur partage:', err);
+          download(canvas);
+        }
+      }
+    } else {
+      download(canvas);
+    }
+  });
+}
+
+function download(canvas) {
+  const link = document.createElement('a');
+  link.download = 'bison-score.png';
+  link.href = canvas.toDataURL();
+  link.click();
+}
+
 document.addEventListener('DOMContentLoaded', updateUI);
 </script>
-</body>
-</html>
 <script>
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", () => {
     navigator.serviceWorker.register("/sw.js").catch(e => console.warn("SW:", e));
   });
 }
-</script></body></html>
+</script>
+</body>
+</html>
